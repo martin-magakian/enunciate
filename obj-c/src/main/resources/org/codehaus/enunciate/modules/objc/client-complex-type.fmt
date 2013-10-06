@@ -910,10 +910,19 @@
     }
     __child = [NSValue value: _child_accessor withObjCType: @encode(${classnameFor(choice.collectionItemType)})];
               [#else]
+              		[#if element.wrapped]
+   if(xmlTextReaderIsEmptyElement(reader) != 0){
+       __child = [[${classnameFor(choice.collectionItemType)} alloc] init];
+       xmlTextReaderAdvanceToNextStartOrEndElement(reader);
+   }else{
+       __child = [${classnameFor(choice.collectionItemType)} readXMLType: reader];
+   }
+              		[#else]
     __child = [${classnameFor(choice.collectionItemType)} readXMLType: reader];
+              		[/#if]
               [/#if]
             [#else]
-    __child = [${classnameFor(choice)} readXMLType: reader];
+    __child = [${classnameFor(choice)} readXMLType: reader]; //what's up 2
             [/#if]
 #if DEBUG_ENUNCIATE > 1
     NSLog(@"successfully read choice {${choice.namespace!""}}${choice.name} of [#if choice.ref??]element {${choice.ref.namespaceURI}}${choice.ref.localPart}[#else]type {${choice.baseType.qname.namespaceURI}}${choice.baseType.qname.localPart}[/#if].");

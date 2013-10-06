@@ -1,6 +1,7 @@
 package org.codehaus.enunciate.modules.objc;
 
 import junit.framework.TestCase;
+
 import org.codehaus.enunciate.XmlQNameEnumUtil;
 import org.codehaus.enunciate.examples.objc.schema.*;
 import org.codehaus.enunciate.examples.objc.schema.animals.Cat;
@@ -11,12 +12,15 @@ import org.codehaus.enunciate.examples.objc.schema.structures.HouseStyle;
 import org.codehaus.enunciate.examples.objc.schema.structures.HouseType;
 import org.codehaus.enunciate.examples.objc.schema.vehicles.Bus;
 import org.codehaus.enunciate.examples.objc.schema.vehicles.BusType;
+import org.codehaus.enunciate.examples.objc.schema.vehicles.Seat;
+import org.codehaus.enunciate.examples.objc.schema.vehicles.SeatRow;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -131,7 +135,39 @@ public class TestObjCSerialization extends TestCase {
     assertEquals(1, circle.getDots().size());
     assertNull(circle.getDots().get(0).getWhy());
   }
+  
+  /**
+   * tests for http://jira.codehaus.org/browse/ENUNCIATE-748
+   */
+  public void testEmptyWithoutWrapper() throws Exception {
+    if (this.skipObjCTests) {
+      System.out.println("C tests have been disabled.");
+      return;
+    }
 
+    Bus bus = new Bus();
+    SeatRow rowA = new SeatRow();
+    rowA.setRowName("A");
+    Seat seatA1 = new Seat();
+    seatA1.setNumber(1);
+    Seat seatA2 = new Seat(); //empty element
+    Seat seatA3 = new Seat();
+    seatA3.setNumber(3);
+    rowA.setSeats(Arrays.asList(seatA1, seatA2, seatA3));
+    bus.setSeatRows(Arrays.asList(rowA));
+    
+    bus = processThroughXml(bus);
+    
+    assertNotNull(bus.getSeatRows());
+    assertEquals(1, bus.getSeatRows().size());
+    List<Seat> seats =bus.getSeatRows().get(0).getSeats();
+    assertNotNull(seats);
+    assertEquals(3, seats.size());
+    assertEquals(new Integer(1), seats.get(0).getNumber());
+    assertEquals(null, seats.get(1).getNumber());
+    assertEquals(new Integer(3), seats.get(2).getNumber());
+  }
+  
   /**
    * tests for http://jira.codehaus.org/browse/ENUNCIATE-743
    */
